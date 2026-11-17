@@ -20,5 +20,5 @@ smiol-lib:
 clean:
 	( cd esmf_time_f90; $(MAKE) clean )
 	( cd ezxml; $(MAKE) clean )
-	( $(RM) -r scotch/install )
+	( $(RM) -r scotch/build scotch/install )
 	$(MAKE) -C SMIOL clean

@@ -1478,7 +1478,6 @@ $(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR)/libptscotch.a:
 	-DUSE_ZLIB=OFF -DUSE_LZMA=OFF -DUSE_BZ2=OFF
 	cd $(SCOTCH_RELPATH)/build && $(MAKE)
 	cd $(SCOTCH_RELPATH)/build && $(MAKE) install
-	$(RM) -r $(SCOTCH_RELPATH)/build
 
 scotch_build: $(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR)/libptscotch.a
 
