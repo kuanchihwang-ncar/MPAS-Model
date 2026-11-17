@@ -781,18 +781,18 @@ endif
 
 export SCOTCH ?= false
 ifeq "$(SCOTCH)" "true"
-  ifneq ($(SCOTCH_ROOT),)
+  ifneq ($(SCOTCH_ROOT), )
     ifneq ($(wildcard $(SCOTCH_ROOT)/lib/libptscotch.a), )
       SCOTCH_LIB_DIR = lib
     else ifneq ($(wildcard $(SCOTCH_ROOT)/lib64/libptscotch.a), )
       SCOTCH_LIB_DIR = lib64
     else
-      $(error SCOTCH_ROOT=$(SCOTCH_ROOT) does not point to a valid PT-SCOTCH installation.)
+      $(error SCOTCH_ROOT=$(SCOTCH_ROOT) does not point to a valid PT-SCOTCH installation)
     endif
-	SCOTCH_MESSAGE="MPAS was built with an external PT-SCOTCH library provided by SCOTCH_ROOT"
+    SCOTCH_MESSAGE="MPAS was built with an external PT-SCOTCH library provided by SCOTCH_ROOT."
   else
     SCOTCH_RELPATH = src/external/scotch
-    SCOTCH_ROOT = ${CURDIR}/${SCOTCH_RELPATH}/install
+    SCOTCH_ROOT = $(CURDIR)/$(SCOTCH_RELPATH)/install
     SCOTCH_LIB_DIR = lib
     SCOTCH_MESSAGE="MPAS was built with the embedded PT-SCOTCH library."
   endif
@@ -1472,13 +1472,13 @@ $(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR)/libptscotch.a:
 
 	$(info Building Scotch library...)
 	src/core_atmosphere/tools/manage_externals/checkout_externals --externals src/Externals.cfg;
-	cd ${SCOTCH_RELPATH} && mkdir -p build;
-	cd ${SCOTCH_RELPATH}/build && cmake .. -DCMAKE_INSTALL_PREFIX=$(SCOTCH_ROOT) -DCMAKE_INSTALL_LIBDIR=$(SCOTCH_LIB_DIR) -DCMAKE_BUILD_TYPE=Release \
+	cd $(SCOTCH_RELPATH) && mkdir -p build;
+	cd $(SCOTCH_RELPATH)/build && cmake .. -DCMAKE_INSTALL_PREFIX=$(SCOTCH_ROOT) -DCMAKE_INSTALL_LIBDIR=$(SCOTCH_LIB_DIR) -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX) -DBUILD_FORTRAN=OFF -DBUILD_LIBSCOTCHMETIS=OFF -DBUILD_LIBESMUMPS=OFF \
 	-DUSE_ZLIB=OFF -DUSE_LZMA=OFF -DUSE_BZ2=OFF;
-	cd ${SCOTCH_RELPATH}/build && $(MAKE);
-	cd ${SCOTCH_RELPATH}/build && $(MAKE) install;
-	$(RM) -r ${SCOTCH_RELPATH}/build;
+	cd $(SCOTCH_RELPATH)/build && $(MAKE);
+	cd $(SCOTCH_RELPATH)/build && $(MAKE) install;
+	$(RM) -r $(SCOTCH_RELPATH)/build;
 
 scotch_build: $(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR)/libptscotch.a
 
@@ -1510,8 +1510,8 @@ scotch_c_test: scotch_build
 	))
 	$(if $(findstring 0,$(SCOTCH_C_TEST)), $(error Could not build a simple C program with Scotch. $\
 		Test program ptscotch_c_test.c and output ptscotch_c_test.log have been left $\
-	    in the top-level MPAS directory for further debugging ))
-	$(if $(findstring 1,$(SCOTCH_C_TEST)), $(info Built a simple C program with Scotch ))
+	    in the top-level MPAS directory for further debugging))
+	$(if $(findstring 1,$(SCOTCH_C_TEST)), $(info Built a simple C program with Scotch.))
 
 pnetcdf_test:
 	@#
