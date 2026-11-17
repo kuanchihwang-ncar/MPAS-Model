@@ -782,27 +782,26 @@ endif
 export SCOTCH ?= false
 ifeq "$(SCOTCH)" "true"
   ifneq ($(SCOTCH_ROOT), )
-    ifneq ($(wildcard $(SCOTCH_ROOT)/lib/libptscotch.a), )
-      SCOTCH_LIB_DIR = lib
-    else ifneq ($(wildcard $(SCOTCH_ROOT)/lib64/libptscotch.a), )
-      SCOTCH_LIB_DIR = lib64
+    ifneq ($(wildcard $(SCOTCH_ROOT)/lib/libptscotch.*), )
+      SCOTCH_LIBDIR = lib
+    else ifneq ($(wildcard $(SCOTCH_ROOT)/lib64/libptscotch.*), )
+      SCOTCH_LIBDIR = lib64
     else
       $(error SCOTCH_ROOT=$(SCOTCH_ROOT) does not point to a valid PT-SCOTCH installation)
     endif
     SCOTCH_MESSAGE="MPAS was built with an external PT-SCOTCH library provided by SCOTCH_ROOT."
   else
-    SCOTCH_RELPATH = src/external/scotch
-    SCOTCH_ROOT = $(abspath $(SCOTCH_RELPATH)/install)
-    SCOTCH_LIB_DIR = lib
+    SCOTCH_SOURCE = src/external/scotch
+    SCOTCH_ROOT = $(abspath $(SCOTCH_SOURCE)/install)
+    SCOTCH_LIBDIR = lib
     SCOTCH_MESSAGE="MPAS was built with the embedded PT-SCOTCH library."
   endif
 
-  SCOTCH_INCLUDES += -I$(SCOTCH_ROOT)/include
-  SCOTCH_LIBS += -L$(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR) -lptscotch -lscotch  -lptscotcherr -lm
-  SCOTCH_FLAGS = -DMPAS_SCOTCH
-  CPPINCLUDES += $(SCOTCH_INCLUDES)
+  SCOTCH_CPPINCLUDES = -I$(SCOTCH_ROOT)/include
+  SCOTCH_LIBS = -L$(SCOTCH_ROOT)/$(SCOTCH_LIBDIR) -lptscotch -lscotch -lptscotcherr
+  CPPINCLUDES += $(SCOTCH_CPPINCLUDES)
   LIBS += $(SCOTCH_LIBS)
-  override CPPFLAGS += $(SCOTCH_FLAGS)
+  override CPPFLAGS += -DMPAS_SCOTCH
 else ifeq "$(SCOTCH)" "false"
   SCOTCH_MESSAGE="MPAS was not linked with the PT-SCOTCH library."
 else
@@ -1465,21 +1464,30 @@ musica_fortran_test:
 	$(eval MUSICA_FORTRAN_VERSION := $(shell pkg-config --modversion musica-fortran))
 	$(if $(findstring 1,$(MUSICA_FORTRAN_TEST)), $(info Built a simple test program with MUSICA-Fortran version $(MUSICA_FORTRAN_VERSION)), )
 
-$(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR)/libptscotch.a:
+scotch_build:
 	@#
 	@# Build the Scotch library if it is not already built
 	@#
-
+ifeq ($(wildcard $(SCOTCH_ROOT)/$(SCOTCH_LIBDIR)/libptscotch.*), )
 	$(info Building Scotch library...)
 	src/core_atmosphere/tools/manage_externals/checkout_externals --externals src/Externals.cfg
-	cd $(SCOTCH_RELPATH) && mkdir -p build
-	cd $(SCOTCH_RELPATH)/build && cmake .. -DCMAKE_INSTALL_PREFIX=$(SCOTCH_ROOT) -DCMAKE_INSTALL_LIBDIR=$(SCOTCH_LIB_DIR) -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=$(CC) -DBUILD_FORTRAN=OFF -DBUILD_LIBSCOTCHMETIS=OFF -DBUILD_LIBESMUMPS=OFF \
-	-DUSE_ZLIB=OFF -DUSE_LZMA=OFF -DUSE_BZ2=OFF
-	cd $(SCOTCH_RELPATH)/build && $(MAKE)
-	cd $(SCOTCH_RELPATH)/build && $(MAKE) install
-
-scotch_build: $(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR)/libptscotch.a
+	cd $(SCOTCH_SOURCE) && mkdir -p build
+	cd $(SCOTCH_SOURCE)/build && cmake .. \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_COMPILER=$(CC) \
+		-DCMAKE_INSTALL_LIBDIR=$(SCOTCH_LIBDIR) \
+		-DCMAKE_INSTALL_PREFIX=$(SCOTCH_ROOT) \
+		-DBUILD_FORTRAN=OFF \
+		-DBUILD_LIBESMUMPS=OFF \
+		-DBUILD_LIBSCOTCHMETIS=OFF \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DENABLE_TESTS=OFF \
+		-DUSE_BZ2=OFF \
+		-DUSE_LZMA=OFF \
+		-DUSE_ZLIB=OFF
+	cd $(SCOTCH_SOURCE)/build && $(MAKE)
+	cd $(SCOTCH_SOURCE)/build && $(MAKE) install
+endif
 
 scotch_c_test: scotch_build
 	@#
@@ -1498,7 +1506,7 @@ scotch_c_test: scotch_build
 			&    return err;\n\
 			&}\n" | sed 's/&/ /' > ptscotch_c_test.c; $\
 		$\
-		$(CC) $(CPPINCLUDES) $(CFLAGS) $(LDFLAGS) ptscotch_c_test.c -o ptscotch_c_test.x $(SCOTCH_LIBS) > ptscotch_c_test.log 2>&1; $\
+		$(CC) $(SCOTCH_CPPINCLUDES) $(CFLAGS) $(LDFLAGS) $(SCOTCH_LIBS) ptscotch_c_test.c -o ptscotch_c_test.x $(SCOTCH_LIBS) > ptscotch_c_test.log 2>&1; $\
 		scotch_c_status=$$?; $\
 		if [ $$scotch_c_status -eq 0 ]; then $\
 			printf "1"; $\
