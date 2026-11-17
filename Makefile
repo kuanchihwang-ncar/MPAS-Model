@@ -1471,14 +1471,14 @@ $(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR)/libptscotch.a:
 	@#
 
 	$(info Building Scotch library...)
-	src/core_atmosphere/tools/manage_externals/checkout_externals --externals src/Externals.cfg;
-	cd $(SCOTCH_RELPATH) && mkdir -p build;
+	src/core_atmosphere/tools/manage_externals/checkout_externals --externals src/Externals.cfg
+	cd $(SCOTCH_RELPATH) && mkdir -p build
 	cd $(SCOTCH_RELPATH)/build && cmake .. -DCMAKE_INSTALL_PREFIX=$(SCOTCH_ROOT) -DCMAKE_INSTALL_LIBDIR=$(SCOTCH_LIB_DIR) -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=$(CC) -DBUILD_FORTRAN=OFF -DBUILD_LIBSCOTCHMETIS=OFF -DBUILD_LIBESMUMPS=OFF \
-	-DUSE_ZLIB=OFF -DUSE_LZMA=OFF -DUSE_BZ2=OFF;
-	cd $(SCOTCH_RELPATH)/build && $(MAKE);
-	cd $(SCOTCH_RELPATH)/build && $(MAKE) install;
-	$(RM) -r $(SCOTCH_RELPATH)/build;
+	-DUSE_ZLIB=OFF -DUSE_LZMA=OFF -DUSE_BZ2=OFF
+	cd $(SCOTCH_RELPATH)/build && $(MAKE)
+	cd $(SCOTCH_RELPATH)/build && $(MAKE) install
+	$(RM) -r $(SCOTCH_RELPATH)/build
 
 scotch_build: $(SCOTCH_ROOT)/$(SCOTCH_LIB_DIR)/libptscotch.a
 
