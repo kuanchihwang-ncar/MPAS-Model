@@ -792,7 +792,7 @@ ifeq "$(SCOTCH)" "true"
     SCOTCH_MESSAGE="MPAS was built with an external PT-SCOTCH library provided by SCOTCH_ROOT."
   else
     SCOTCH_RELPATH = src/external/scotch
-    SCOTCH_ROOT = $(CURDIR)/$(SCOTCH_RELPATH)/install
+    SCOTCH_ROOT = $(abspath $(SCOTCH_RELPATH)/install)
     SCOTCH_LIB_DIR = lib
     SCOTCH_MESSAGE="MPAS was built with the embedded PT-SCOTCH library."
   endif
