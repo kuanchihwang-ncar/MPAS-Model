@@ -706,25 +706,26 @@ endif
 ifneq "$(PIO)" ""
 #
 # Regardless of PIO library version, look for a lib subdirectory of PIO path
-# NB: PIO_LIB is used later, so we don't just set LIBS directly
+# NB: PIO_LIBDIR is used later, so we don't just set LIBS directly
 #
 ifneq ($(wildcard $(PIO)/lib), )
-	PIO_LIB = $(PIO)/lib
+	PIO_LIBDIR = $(PIO)/lib
 else
-	PIO_LIB = $(PIO)
+	PIO_LIBDIR = $(PIO)
 endif
-LIBS = -L$(PIO_LIB)
+PIO_LIBS = -L$(PIO_LIBDIR)
 
 #
 # Regardless of PIO library version, look for an include subdirectory of PIO path
 #
 ifneq ($(wildcard $(PIO)/include), )
 	CPPINCLUDES += -I$(PIO)/include
-	FCINCLUDES += -I$(PIO)/include
+	PIO_FCINCLUDES = -I$(PIO)/include
 else
 	CPPINCLUDES += -I$(PIO)
-	FCINCLUDES += -I$(PIO)
+	PIO_FCINCLUDES = -I$(PIO)
 endif
+FCINCLUDES += $(PIO_FCINCLUDES)
 
 #
 # Depending on PIO version, libraries may be libpio.a, or libpiof.a and libpioc.a
@@ -732,22 +733,23 @@ endif
 #
 # Check if libpio.* exists and link -lpio if so, but we make an exception for
 # libpio.settings (a file added in PIO2), which is not a library to link
-ifneq ($(wildcard $(PIO_LIB)/libpio\.*), )
+ifneq ($(wildcard $(PIO_LIBDIR)/libpio.*), )
 	# Makefiles don't support "and" operators so we have nested "if" instead
-	ifneq "$(wildcard $(PIO_LIB)/libpio\.*)" "$(PIO_LIB)/libpio.settings"
-		LIBS += -lpio
+	ifneq "$(wildcard $(PIO_LIBDIR)/libpio.*)" "$(PIO_LIBDIR)/libpio.settings"
+		PIO_LIBS += -lpio
 	endif
 endif
 
-ifneq ($(wildcard $(PIO_LIB)/libpiof\.*), )
-	LIBS += -lpiof
+ifneq ($(wildcard $(PIO_LIBDIR)/libpiof.*), )
+	PIO_LIBS += -lpiof
 endif
-ifneq ($(wildcard $(PIO_LIB)/libpioc\.*), )
-	LIBS += -lpioc
+ifneq ($(wildcard $(PIO_LIBDIR)/libpioc.*), )
+	PIO_LIBS += -lpioc
 endif
-ifneq ($(wildcard $(PIO_LIB)/libgptl\.*), )
-	LIBS += -lgptl
+ifneq ($(wildcard $(PIO_LIBDIR)/libgptl.*), )
+	PIO_LIBS += -lgptl
 endif
+LIBS += $(PIO_LIBS)
 
 else # Not using PIO, using SMIOL
 	LIBS += -L$(PWD)/src/external/SMIOL -lsmiolf -lsmiol
@@ -1361,10 +1363,10 @@ endif
 		        &   call PIO_setframe(pio_file, field_desc, frame_number)\n$\
 		        end program\n" | sed 's/&/ /' > pio2.f90; $\
 		$\
-		$(FC) pio1.f90 -o pio1.x $(FCINCLUDES) $(FFLAGS) $(LDFLAGS) $(LIBS) > /dev/null 2>&1; $\
+		$(FC) pio1.f90 -o pio1.x $(PIO_FCINCLUDES) $(FFLAGS) $(LDFLAGS) $(PIO_LIBS) > /dev/null 2>&1; $\
 		pio1_status=$$?; $\
 		$\
-		$(FC) pio2.f90 -o pio2.x $(FCINCLUDES) $(FFLAGS) $(LDFLAGS) $(LIBS) > /dev/null 2>&1; $\
+		$(FC) pio2.f90 -o pio2.x $(PIO_FCINCLUDES) $(FFLAGS) $(LDFLAGS) $(PIO_LIBS) > /dev/null 2>&1; $\
 		pio2_status=$$?; $\
 		$\
 		if [ $$pio1_status -ne 0 -a $$pio2_status -ne 0 ]; then $\
@@ -1375,9 +1377,9 @@ endif
 		    printf "Both of the following commands to compile a test program\n" >> .piotest.log; $\
 		    printf "failed with errors:\n" >> .piotest.log; $\
 		    printf "\n" >> .piotest.log; $\
-		    printf "$(FC) pio1.f90 -o pio1.x $(FCINCLUDES) $(FFLAGS) $(LDFLAGS) $(LIBS)\n" >> .piotest.log; $\
+		    printf "$(FC) pio1.f90 -o pio1.x $(PIO_FCINCLUDES) $(FFLAGS) $(LDFLAGS) $(PIO_LIBS)\n" >> .piotest.log; $\
 		    printf "\n" >> .piotest.log; $\
-		    printf "$(FC) pio2.f90 -o pio2.x $(FCINCLUDES) $(FFLAGS) $(LDFLAGS) $(LIBS)\n" >> .piotest.log; $\
+		    printf "$(FC) pio2.f90 -o pio2.x $(PIO_FCINCLUDES) $(FFLAGS) $(LDFLAGS) $(PIO_LIBS)\n" >> .piotest.log; $\
 		    printf "\n" >> .piotest.log; $\
 		    printf "The pio1.f90 and pio2.f90 test programs have been left in\n" >> .piotest.log; $\
 		    printf "the top-level MPAS directory for further debugging.\n" >> .piotest.log; $\
